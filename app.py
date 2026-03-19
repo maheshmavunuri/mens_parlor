@@ -24,7 +24,7 @@ init_db()
 # -----------------------------
 @app.route('/')
 def home():
-    return "WORKING"
+    return render_template('index.html')
 # -----------------------------
 # BOOKING PAGE
 # -----------------------------
