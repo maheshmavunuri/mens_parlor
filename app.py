@@ -3,7 +3,9 @@ import sqlite3
 
 app = Flask(__name__)
 
-# ---------------- DATABASE ----------------
+# -----------------------------
+# DATABASE
+# -----------------------------
 def init_db():
     conn = sqlite3.connect('database.db')
     conn.execute('''CREATE TABLE IF NOT EXISTS bookings
@@ -12,64 +14,76 @@ def init_db():
                   phone TEXT,
                   service TEXT,
                   date TEXT,
-                  time TEXT,
-                  UNIQUE(date, time))''')
+                  time TEXT)''')
     conn.close()
 
 init_db()
 
-# ---------------- HOME ----------------
+# -----------------------------
+# HOME PAGE
+# -----------------------------
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# ---------------- BOOK ----------------
+# -----------------------------
+# BOOKING PAGE
+# -----------------------------
 @app.route('/book', methods=['GET', 'POST'])
 def book():
     if request.method == 'POST':
-        try:
-            name = request.form.get('name')
-            phone = request.form.get('phone')
-            service = request.form.get('service')
-            date = request.form.get('date')
-            time = request.form.get('time')
+        name = request.form['name']
+        phone = request.form['phone']
+        service = request.form['service']
+        date = request.form['date']
+        time = request.form['time']
 
-            conn = sqlite3.connect('database.db')
-            conn.execute("INSERT INTO bookings (name, phone, service, date, time) VALUES (?, ?, ?, ?, ?)",
-                         (name, phone, service, date, time))
-            conn.commit()
-            conn.close()
+        conn = sqlite3.connect('database.db')
+        conn.execute("INSERT INTO bookings (name, phone, service, date, time) VALUES (?, ?, ?, ?, ?)",
+                     (name, phone, service, date, time))
+        conn.commit()
+        conn.close()
 
-            return redirect('/success')
-
-        except:
-            return "<h3 style='color:red;'>❌ Slot already booked!</h3>"
+        return redirect('/success')
 
     return render_template('book.html')
 
-# ---------------- SUCCESS ----------------
+# -----------------------------
+# SUCCESS PAGE
+# -----------------------------
 @app.route('/success')
 def success():
     return render_template('success.html')
 
-# ---------------- ADMIN ----------------
+# -----------------------------
+# ADMIN LOGIN
+# -----------------------------
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form['username']
+        password = request.form['password']
 
         if username == "admin" and password == "1234":
-            conn = sqlite3.connect('database.db')
-            bookings = conn.execute("SELECT * FROM bookings").fetchall()
-            conn.close()
-
-            return render_template('dashboard.html', bookings=bookings)
+            return redirect('/dashboard')
         else:
-            return "<h3 style='color:red;'>❌ Invalid Login</h3>"
+            return "Invalid Login"
 
     return render_template('admin.html')
 
-# ---------------- RUN ----------------
+# -----------------------------
+# DASHBOARD
+# -----------------------------
+@app.route('/dashboard')
+def dashboard():
+    conn = sqlite3.connect('database.db')
+    bookings = conn.execute("SELECT * FROM bookings").fetchall()
+    conn.close()
+
+    return render_template('dashboard.html', bookings=bookings)
+
+# -----------------------------
+# RUN APP
+# -----------------------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=10000)
